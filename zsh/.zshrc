@@ -4,15 +4,22 @@ fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit
 compinit -u
 
+# get pyenv name
+source /path/to/get-pyenv-name/get.sh
+
 # left prompt setting
 # 参考: https://dev.macha795.com/zsh-prompt-customize/
 export CLICOLOR=1
+
+autoload -Uz compinit && compinit  # Gitの補完を有効化
 
 function left-prompt {
   name_t='179m%}'      # user name text clolr
   name_b='000m%}'    # user name background color
   path_t='255m%}'     # path text clolr
   path_b='031m%}'   # path background color
+  pyenv_t='250m%}'  # pyenv name text color
+  pyenv_b='094m%}'  # pyenv name background color
   arrow='087m%}'   # arrow color
   text_color='%{\e[38;5;'    # set text color
   back_color='%{\e[30;48;5;' # set background color
@@ -21,7 +28,13 @@ function left-prompt {
 
   user="${back_color}${name_b}${text_color}${name_t}"
   dir="${back_color}${path_b}${text_color}${path_t}"
-  echo "${user} %n ${back_color}${path_b}${text_color}${name_b}${sharp} ${dir}%~${reset}${text_color}${path_b}${sharp}${reset}\n${text_color}${arrow}$ ${reset}"
+  env="${back_color}${pyenv_b}${text_color}${pyenv_t}"
+
+  output=${reset}${text_color}${path_b}${sharp}${reset}
+  if [ "${ZSH_PYTHON_PROMPT}" != "" ]; then
+    output=${reset}${back_color}${pyenv_b}${text_color}${path_b}${sharp}" "${env}${ZSH_PYTHON_PROMPT}" "${reset}${text_color}${pyenv_b}${sharp}
+  fi
+  echo "${user} %n ${back_color}${path_b}${text_color}${name_b}${sharp} ${dir}%C ${output}${reset}\n${text_color}${arrow}$ ${reset}"
 }
 
 PROMPT=`left-prompt`
@@ -82,7 +95,7 @@ function rprompt-git-current-branch {
   fi
 
   # ブランチ名を色付きで表示する
-  echo "${branch_status}$branch_name${reset}"
+  echo "${branch_status} $branch_name${reset}"
 }
 
 # プロンプトが表示されるたびにプロンプト文字列を評価、置換する
